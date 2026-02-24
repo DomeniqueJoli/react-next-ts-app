@@ -69,8 +69,7 @@ export default function LandingPage() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 1.2,
-        ease: [0.16, 1, 0.3, 1] // Super smooth deceleration
+        duration: 1.2
       }
     }
   };
@@ -149,7 +148,7 @@ export default function LandingPage() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            transition={{ duration: 2, ease: "easeInOut", delay: 0.2 }}
             className="absolute text-rose-500 drop-shadow-xl"
           >
             <Flower2 size={88} strokeWidth={1.5} />
