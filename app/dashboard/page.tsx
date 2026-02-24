@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Flower2, Users, Loader2, CircleDollarSign, Activity as ActivityIcon, Link as LinkIcon, Bookmark, CheckCircle2 } from "lucide-react";
+import { generateMindfulActivity } from "../actions";
 
 interface Activity {
   activity: string;
@@ -28,12 +29,8 @@ export default function Home() {
     setIsSaved(false);
     setIsDone(false);
     try {
-      const res = await fetch("https://bored.api.lewagon.com/api/activity");
-      if (!res.ok) {
-        if (res.status === 429) throw new Error("Too many requests. Take a deep breath and try again.");
-        throw new Error("Failed to fetch activity");
-      }
-      const data = await res.json();
+      // Using Next.js Server Action to meet Hackathon Backend requirement
+      const data = await generateMindfulActivity();
       setActivity(data);
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
@@ -51,8 +48,14 @@ export default function Home() {
     setIsSaved(true);
   };
 
+  const [showBurst, setShowBurst] = useState(false);
+
   const handleDone = () => {
     if (!activity) return;
+    if (!isDone) {
+      setShowBurst(true);
+      setTimeout(() => setShowBurst(false), 1500);
+    }
     const completed = JSON.parse(localStorage.getItem('brainbloom_completed') || '[]');
     if (!completed.some((a: Activity) => a.key === activity.key)) {
       localStorage.setItem('brainbloom_completed', JSON.stringify([activity, ...completed]));
@@ -62,17 +65,52 @@ export default function Home() {
 
   return (
     <main className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-800">
-      {/* Decorative background elements */}
+      {/* --- TWINBRU-INSPIRED TEXTURED BACKGROUND ANIMATIONS --- */}
+      
+      {/* 1. Fine Noise Texture Overlay */}
+      <svg className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-[0.08] mix-blend-color-burn">
+        <filter id="noiseFilter">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+      </svg>
+
+      {/* 2. Soft Ambient Lighting Orbs */}
       <motion.div 
-        animate={{ rotate: 360 }} 
-        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-        className="absolute -top-[20vw] -left-[20vw] w-[50vw] h-[50vw] bg-rose-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"
+        animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] bg-emerald-300/80 rounded-full mix-blend-multiply filter blur-[120px] pointer-events-none"
       />
       <motion.div 
-        animate={{ rotate: -360 }} 
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        className="absolute -bottom-[20vw] -right-[20vw] w-[60vw] h-[60vw] bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.3, 0.15] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute top-[20%] -right-[15%] w-[60vw] h-[60vw] bg-rose-300/80 rounded-[40%] mix-blend-multiply filter blur-[120px] pointer-events-none"
       />
+
+      {/* 3. Layered, Oversized Line-Art Flowers Blooming */}
+      <motion.div
+        animate={{ scale: [0.95, 1.1, 0.95], rotate: [0, 45, 0] }}
+        transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-[30%] -left-[20%] text-emerald-900/[0.08] pointer-events-none"
+      >
+        <Flower2 className="w-[80vw] h-[80vw]" strokeWidth={0.5} />
+      </motion.div>
+      
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], rotate: [45, 0, 45] }}
+        transition={{ duration: 45, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+        className="absolute top-[10%] -right-[30%] text-rose-900/[0.06] pointer-events-none"
+      >
+        <Flower2 className="w-[100vw] h-[100vw]" strokeWidth={0.4} />
+      </motion.div>
+
+      <motion.div
+        animate={{ scale: [1.1, 0.95, 1.1], rotate: [-20, 20, -20] }}
+        transition={{ duration: 40, repeat: Infinity, ease: "easeInOut", delay: 10 }}
+        className="absolute -bottom-[40%] left-[10%] text-stone-900/[0.08] pointer-events-none"
+      >
+        <Flower2 className="w-[90vw] h-[90vw]" strokeWidth={0.4} />
+      </motion.div>
       
       <div className="z-10 max-w-2xl w-full flex flex-col items-center text-center">
         <motion.div
@@ -210,10 +248,29 @@ export default function Home() {
                   <button 
                     onClick={handleDone} 
                     disabled={isDone}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${isDone ? 'bg-emerald-500 text-white shadow-md' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm hover:shadow-md'}`}
+                    className={`relative flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all overflow-visible ${isDone ? 'bg-emerald-500 text-white shadow-md' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm hover:shadow-md'}`}
                   >
-                    <CheckCircle2 size={20} />
-                    {isDone ? "Completed!" : "Mark as Done"}
+                    {/* Mindful Burst Particles */}
+                    {showBurst && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        {[...Array(12)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
+                            animate={{ 
+                              opacity: 0, 
+                              scale: Math.random() * 1 + 0.5,
+                              x: (Math.random() - 0.5) * 150, 
+                              y: (Math.random() - 0.5) * 150 
+                            }}
+                            transition={{ duration: 0.5 + Math.random() * 0.4, ease: "easeOut" }}
+                            className={`absolute w-2.5 h-2.5 rounded-full ${['bg-emerald-300', 'bg-rose-300', 'bg-white'][i % 3]}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <CheckCircle2 size={20} className="relative z-10" />
+                    <span className="relative z-10">{isDone ? "Completed!" : "Mark as Done"}</span>
                   </button>
                 </div>
 
